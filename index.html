@@ -6,7 +6,7 @@
     <title>雞棚指數 - 雙軌雷達圖生成器</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: font-family 0.3s; }
+        body { font-family: "PingFang HK", "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: font-family 0.3s; }
         h2 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); margin-bottom: 10px; } 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; width: 100%; max-width: 1000px; }
         
@@ -60,12 +60,15 @@
     <h2>🐔 雞棚指數 雷達圖生成器</h2>
     <div class="container">
         <div class="controls">
-            <!-- 字體切換下拉選單 -->
+            <!-- 擴充版：字體切換下拉選單 -->
             <select id="fontSelect" class="mode-select" onchange="updateFont()" style="border-color: #aaa; color: #fff;">
-                <option value="'Microsoft JhengHei', sans-serif">字體：微軟正黑體 (現代標準)</option>
-                <option value="'DFKai-SB', 'BiauKai', serif">字體：標楷體 (復古老字號)</option>
-                <option value="'PMingLiU', 'MingLiU', serif">字體：新細明體 (報刊風格)</option>
+                <option value="'PingFang HK', 'Microsoft JhengHei', sans-serif">字體：蘋方 / 正黑體 (現代標準)</option>
+                <option value="'BiauKai', 'DFKai-SB', kaiti, serif">字體：標楷體 (復古老字號)</option>
+                <option value="'LiSu', 'STLiti', serif">字體：隸書 (當舖招牌風格)</option>
+                <option value="'PMingLiU', 'MingLiU', serif">字體：明體 / 宋體 (報刊文青)</option>
+                <option value="'FangSong', 'STFangsong', serif">字體：仿宋體 (典雅傳統)</option>
                 <option value="'Heiti TC', 'Microsoft YaHei', sans-serif">字體：黑體 (簡約俐落)</option>
+                <option value="'cwTeXYen', 'Varela Round', 'Arial Rounded MT Bold', sans-serif">字體：圓體 (溫和親切)</option>
             </select>
 
             <!-- 雙軌模式切換 -->
@@ -83,224 +86,3 @@
                 </div>
                 <div class="color-item">
                     <label>文字顏色</label>
-                    <input type="color" id="textColor" value="#ffffff" oninput="updateColors()">
-                </div>
-            </div>
-            
-            <div id="sliders"></div>
-
-            <button class="btn btn-download" onclick="downloadChart()">Download</button>
-            <button class="btn btn-reset" onclick="resetData()">Reset</button>
-            <p class="note">下載後的圖片為 PNG 透明背景，方便貼在 IG 相片上</p>
-        </div>
-
-        <div class="chart-box">
-            <canvas id="radarChart"></canvas>
-        </div>
-    </div>
-
-    <script>
-        // 定義兩種模式的維度設定
-        const modeData = {
-            hainan: [
-                { id: 'h_skin', label: '外皮', default: 8 },
-                { id: 'h_meat', label: '肉質', default: 8 },
-                { id: 'h_fat', label: '脂肪', default: 6 },
-                { id: 'h_flavor', label: '食味', default: 7 },
-                { id: 'h_rice', label: '油飯', default: 9 },
-                { id: 'h_soy', label: '醬油', default: 7 },
-                { id: 'h_ginger', label: '薑蓉', default: 8 },
-                { id: 'h_chili', label: '辣醬', default: 7 }
-            ],
-            general: [
-                { id: 'g_skin', label: '外皮', default: 7 },
-                { id: 'g_fat', label: '脂肪', default: 6 },
-                { id: 'g_meat', label: '肉質', default: 8 },
-                { id: 'g_flavor', label: '食味', default: 7 },
-                { id: 'g_sauce', label: '調味', default: 7 },
-                { id: 'g_cook', label: '火候', default: 8 },
-                { id: 'g_look', label: '賣相', default: 8 },
-                { id: 'g_cp', label: 'CP值', default: 7 }
-            ]
-        };
-
-        let currentDimensions = modeData['hainan'];
-        const slidersContainer = document.getElementById('sliders');
-        let radarChart;
-
-        // 1. 初始化圖表
-        function initChart() {
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            Chart.defaults.backgroundColor = 'transparent';
-            const defaultFont = document.getElementById('fontSelect').value;
-
-            radarChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: currentDimensions.map(d => d.label),
-                    datasets: [{
-                        label: '雞棚指數',
-                        data: currentDimensions.map(d => d.default),
-                        backgroundColor: '#FFD70073', 
-                        borderColor: '#FFD700',       
-                        borderWidth: 3,                            
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#FFD700',
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true, 
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: '店名',
-                            font: { size: 28, family: defaultFont, weight: 'bold' },
-                            color: '#ffffff',
-                            padding: { top: 0, bottom: 5 } 
-                        },
-                        subtitle: {
-                            display: true,
-                            text: '總分：0 / 100',
-                            font: { size: 22, family: defaultFont, weight: 'bold' },
-                            color: '#FFD700', 
-                            padding: { bottom: 15 }
-                        },
-                        legend: { display: false }
-                    },
-                    scales: {
-                        r: {
-                            angleLines: { color: '#ffffff40' }, 
-                            grid: { color: '#ffffff40' },       
-                            pointLabels: {
-                                font: { size: 17, weight: 'bold', family: defaultFont }, 
-                                color: '#ffffff' 
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 10,
-                            ticks: { stepSize: 2, display: false } 
-                        }
-                    }
-                }
-            });
-        }
-
-        // 2. 重新生成滑桿 HTML
-        function renderSliders() {
-            slidersContainer.innerHTML = '';
-            currentDimensions.forEach(dim => {
-                const div = document.createElement('div');
-                div.className = 'control-group';
-                div.innerHTML = `
-                    <label>${dim.label}</label>
-                    <input type="range" id="${dim.id}" min="0" max="10" value="${dim.default}" oninput="updateChart()">
-                    <span id="val-${dim.id}" class="val-display">${dim.default}</span>
-                `;
-                slidersContainer.appendChild(div);
-            });
-            updateColors();
-        }
-
-        // 3. 切換評分模式
-        function switchMode() {
-            const selectedMode = document.getElementById('modeSelect').value;
-            currentDimensions = modeData[selectedMode];
-            
-            renderSliders();
-            radarChart.data.labels = currentDimensions.map(d => d.label);
-            updateChart(); 
-        }
-
-        // 4. 動態更新字體 (UI 及 圖表)
-        function updateFont() {
-            const selectedFont = document.getElementById('fontSelect').value;
-            
-            // 更改網頁整體字體
-            document.body.style.fontFamily = selectedFont;
-            
-            // 更改圖表字體
-            radarChart.options.plugins.title.font.family = selectedFont;
-            radarChart.options.plugins.subtitle.font.family = selectedFont;
-            radarChart.options.scales.r.pointLabels.font.family = selectedFont;
-            
-            radarChart.update();
-        }
-
-        // 5. 更新顏色
-        function updateColors() {
-            const rColor = document.getElementById('radarColor').value;
-            const tColor = document.getElementById('textColor').value;
-
-            radarChart.data.datasets[0].borderColor = rColor;
-            radarChart.data.datasets[0].backgroundColor = rColor + '73'; 
-            radarChart.data.datasets[0].pointBorderColor = rColor;
-
-            radarChart.options.plugins.title.color = tColor;
-            radarChart.options.plugins.subtitle.color = rColor; 
-            radarChart.options.scales.r.pointLabels.color = tColor;
-            radarChart.options.scales.r.angleLines.color = tColor + '40';
-            radarChart.options.scales.r.grid.color = tColor + '40';
-
-            document.querySelectorAll('span.val-display').forEach(el => {
-                el.style.color = rColor;
-            });
-            document.querySelectorAll('.control-group input[type="range"]').forEach(el => {
-                el.style.accentColor = rColor;
-            });
-
-            radarChart.update();
-        }
-
-        // 6. 計分與更新圖表數據
-        function updateChart() {
-            let sum = 0;
-            const newData = currentDimensions.map(dim => {
-                const val = parseInt(document.getElementById(dim.id).value, 10);
-                document.getElementById(`val-${dim.id}`).innerText = val;
-                sum += val;
-                return val;
-            });
-
-            const totalScore = Math.round((sum / 80) * 100);
-
-            const name = document.getElementById('restaurantName').value;
-            radarChart.options.plugins.title.text = name;
-            radarChart.options.plugins.subtitle.text = `總體評分：${totalScore} / 100`;
-            radarChart.data.datasets[0].data = newData;
-            radarChart.update();
-        }
-
-        // 7. 數據重置
-        function resetData() {
-            renderSliders(); 
-            document.getElementById('restaurantName').value = "店名";
-            
-            document.getElementById('radarColor').value = "#FFD700";
-            document.getElementById('textColor').value = "#ffffff";
-            document.getElementById('fontSelect').value = "'Microsoft JhengHei', sans-serif"; // 重置字體為預設
-            
-            updateColors();
-            updateFont();
-            updateChart();
-        }
-
-        // 8. 圖片下載
-        function downloadChart() {
-            const link = document.createElement('a');
-            link.download = '雞棚指數.png';
-            link.href = radarChart.canvas.toDataURL('image/png', 1.0);
-            link.click();
-        }
-
-        // 頁面載入時初始化
-        window.onload = () => {
-            initChart();
-            renderSliders();
-            updateChart(); 
-            updateFont(); // 確保首次載入即套用下拉選單嘅字體
-        };
-    </script>
-</body>
-</html>
