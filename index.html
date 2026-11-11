@@ -6,15 +6,15 @@
     <title>雞棚指數 - 雙軌雷達圖生成器</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: font-family 0.3s; }
         h2 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); margin-bottom: 10px; } 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; width: 100%; max-width: 1000px; }
         
         /* 控制面板設計 */
         .controls { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); box-sizing: border-box; }
         
-        /* 模式切換下拉選單 */
-        select.mode-select { width: 100%; padding: 12px; margin-bottom: 20px; font-size: 16px; font-weight: bold; background: #333; color: #FFD700; border: 2px solid #FFD700; border-radius: 6px; cursor: pointer; }
+        /* 下拉選單設計 */
+        select.mode-select { width: 100%; padding: 12px; margin-bottom: 15px; font-size: 16px; font-weight: bold; background: #333; color: #FFD700; border: 2px solid #FFD700; border-radius: 6px; cursor: pointer; }
         select.mode-select:focus { outline: none; }
 
         .control-group { margin-bottom: 15px; }
@@ -60,10 +60,18 @@
     <h2>🐔 雞棚指數 雷達圖生成器</h2>
     <div class="container">
         <div class="controls">
+            <!-- 字體切換下拉選單 -->
+            <select id="fontSelect" class="mode-select" onchange="updateFont()" style="border-color: #aaa; color: #fff;">
+                <option value="'Microsoft JhengHei', sans-serif">字體：微軟正黑體 (現代標準)</option>
+                <option value="'DFKai-SB', 'BiauKai', serif">字體：標楷體 (復古老字號)</option>
+                <option value="'PMingLiU', 'MingLiU', serif">字體：新細明體 (報刊風格)</option>
+                <option value="'Heiti TC', 'Microsoft YaHei', sans-serif">字體：黑體 (簡約俐落)</option>
+            </select>
+
             <!-- 雙軌模式切換 -->
             <select id="modeSelect" class="mode-select" onchange="switchMode()">
-                <option value="hainan">海南雞</option>
-                <option value="general">百搭食雞</option>
+                <option value="hainan">評分模式：海南雞</option>
+                <option value="general">評分模式：百搭食雞</option>
             </select>
 
             <input type="text" id="restaurantName" value="店名" oninput="updateChart()">
@@ -92,7 +100,7 @@
     </div>
 
     <script>
-        // 定義兩種模式的維度設定 (按照最新要求)
+        // 定義兩種模式的維度設定
         const modeData = {
             hainan: [
                 { id: 'h_skin', label: '外皮', default: 8 },
@@ -120,10 +128,11 @@
         const slidersContainer = document.getElementById('sliders');
         let radarChart;
 
-        // 初始化圖表
+        // 1. 初始化圖表
         function initChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             Chart.defaults.backgroundColor = 'transparent';
+            const defaultFont = document.getElementById('fontSelect').value;
 
             radarChart = new Chart(ctx, {
                 type: 'radar',
@@ -147,16 +156,15 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: '店名：大埔XXXX',
-                            font: { size: 28, family: 'Microsoft JhengHei', weight: 'bold' },
+                            text: '店名',
+                            font: { size: 28, family: defaultFont, weight: 'bold' },
                             color: '#ffffff',
                             padding: { top: 0, bottom: 5 } 
                         },
-                        // 新增 Subtitle 顯示 100分制總體評分
                         subtitle: {
                             display: true,
                             text: '總分：0 / 100',
-                            font: { size: 22, family: 'Microsoft JhengHei', weight: 'bold' },
+                            font: { size: 22, family: defaultFont, weight: 'bold' },
                             color: '#FFD700', 
                             padding: { bottom: 15 }
                         },
@@ -167,7 +175,7 @@
                             angleLines: { color: '#ffffff40' }, 
                             grid: { color: '#ffffff40' },       
                             pointLabels: {
-                                font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' }, 
+                                font: { size: 17, weight: 'bold', family: defaultFont }, 
                                 color: '#ffffff' 
                             },
                             suggestedMin: 0,
@@ -179,7 +187,7 @@
             });
         }
 
-        // 重新生成滑桿 HTML
+        // 2. 重新生成滑桿 HTML
         function renderSliders() {
             slidersContainer.innerHTML = '';
             currentDimensions.forEach(dim => {
@@ -195,7 +203,7 @@
             updateColors();
         }
 
-        // 切換模式觸發函數
+        // 3. 切換評分模式
         function switchMode() {
             const selectedMode = document.getElementById('modeSelect').value;
             currentDimensions = modeData[selectedMode];
@@ -205,6 +213,22 @@
             updateChart(); 
         }
 
+        // 4. 動態更新字體 (UI 及 圖表)
+        function updateFont() {
+            const selectedFont = document.getElementById('fontSelect').value;
+            
+            // 更改網頁整體字體
+            document.body.style.fontFamily = selectedFont;
+            
+            // 更改圖表字體
+            radarChart.options.plugins.title.font.family = selectedFont;
+            radarChart.options.plugins.subtitle.font.family = selectedFont;
+            radarChart.options.scales.r.pointLabels.font.family = selectedFont;
+            
+            radarChart.update();
+        }
+
+        // 5. 更新顏色
         function updateColors() {
             const rColor = document.getElementById('radarColor').value;
             const tColor = document.getElementById('textColor').value;
@@ -214,7 +238,7 @@
             radarChart.data.datasets[0].pointBorderColor = rColor;
 
             radarChart.options.plugins.title.color = tColor;
-            radarChart.options.plugins.subtitle.color = rColor; // 總分跟隨主體顏色
+            radarChart.options.plugins.subtitle.color = rColor; 
             radarChart.options.scales.r.pointLabels.color = tColor;
             radarChart.options.scales.r.angleLines.color = tColor + '40';
             radarChart.options.scales.r.grid.color = tColor + '40';
@@ -229,7 +253,7 @@
             radarChart.update();
         }
 
-        // 計分與更新圖表數據
+        // 6. 計分與更新圖表數據
         function updateChart() {
             let sum = 0;
             const newData = currentDimensions.map(dim => {
@@ -239,7 +263,6 @@
                 return val;
             });
 
-            // 計算 100 分制總分 (四捨五入)
             const totalScore = Math.round((sum / 80) * 100);
 
             const name = document.getElementById('restaurantName').value;
@@ -249,16 +272,21 @@
             radarChart.update();
         }
 
+        // 7. 數據重置
         function resetData() {
             renderSliders(); 
-            document.getElementById('restaurantName').value = "店名：大埔XXXX";
+            document.getElementById('restaurantName').value = "店名";
             
             document.getElementById('radarColor').value = "#FFD700";
             document.getElementById('textColor').value = "#ffffff";
+            document.getElementById('fontSelect').value = "'Microsoft JhengHei', sans-serif"; // 重置字體為預設
+            
             updateColors();
+            updateFont();
             updateChart();
         }
 
+        // 8. 圖片下載
         function downloadChart() {
             const link = document.createElement('a');
             link.download = '雞棚指數.png';
@@ -270,7 +298,8 @@
         window.onload = () => {
             initChart();
             renderSliders();
-            updateChart(); // 確保首次載入即顯示正確總分
+            updateChart(); 
+            updateFont(); // 確保首次載入即套用下拉選單嘅字體
         };
     </script>
 </body>
