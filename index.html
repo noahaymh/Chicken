@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>雞棚指數 - 雙軌雷達圖生成器</title>
+    
+    <!-- 新增：引入 Google 雲端字體，打破手機字體限制 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Noto+Sans+TC:wght@700&family=Noto+Serif+TC:wght@700&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: "PingFang HK", "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: font-family 0.3s; }
+        /* 預設改用雲端黑體 */
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: font-family 0.3s; }
         h2 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); margin-bottom: 10px; } 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; width: 100%; max-width: 1000px; }
         
-        /* 控制面板設計 */
         .controls { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); box-sizing: border-box; }
         
-        /* 下拉選單設計 */
         select.mode-select { width: 100%; padding: 12px; margin-bottom: 15px; font-size: 16px; font-weight: bold; background: #333; color: #FFD700; border: 2px solid #FFD700; border-radius: 6px; cursor: pointer; }
         select.mode-select:focus { outline: none; }
 
@@ -23,13 +28,11 @@
         span.val-display { display: inline-block; width: 35px; text-align: right; color: #FFD700; font-weight: bold; font-size: 16px;}
         input[type=text] { padding: 10px; width: 100%; margin-bottom: 15px; font-size: 16px; text-align: center; border-radius: 6px; border: 1px solid #555; background: #111; color: #fff; font-weight: bold; box-sizing: border-box;}
         
-        /* 調色盤區域 */
         .color-picker-box { display: flex; justify-content: space-between; background: #1a1a1a; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #444; }
         .color-item { display: flex; align-items: center; gap: 8px; }
         .color-item label { width: auto; font-size: 14px; margin: 0; }
         input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: transparent; padding: 0; }
 
-        /* 按鈕設計 */
         .btn { margin-top: 10px; padding: 12px 20px; color: #000; border: none; cursor: pointer; font-weight: bold; font-size: 16px; border-radius: 6px; width: 100%; transition: 0.3s; }
         .btn-reset { background: #ccc; }
         .btn-reset:hover { background: #aaa; }
@@ -37,7 +40,6 @@
         .btn-download:hover { background: #00C853; }
         .note { font-size: 12px; color: #888; margin-top: 15px; text-align: center; }
 
-        /* 圖表顯示區 */
         .chart-box { 
             background: #1a1a1a; 
             background-image: radial-gradient(circle, #333 1px, transparent 1px);
@@ -60,15 +62,12 @@
     <h2>🐔 雞棚指數 雷達圖生成器</h2>
     <div class="container">
         <div class="controls">
-            <!-- 擴充版：字體切換下拉選單 -->
-            <select id="fontSelect" class="mode-select" onchange="updateFont()" style="border-color: #aaa; color: #fff;">
-                <option value="'PingFang HK', 'Microsoft JhengHei', sans-serif">字體：蘋方 / 正黑體 (現代標準)</option>
-                <option value="'BiauKai', 'DFKai-SB', kaiti, serif">字體：標楷體 (復古老字號)</option>
-                <option value="'LiSu', 'STLiti', serif">字體：隸書 (當舖招牌風格)</option>
-                <option value="'PMingLiU', 'MingLiU', serif">字體：明體 / 宋體 (報刊文青)</option>
-                <option value="'FangSong', 'STFangsong', serif">字體：仿宋體 (典雅傳統)</option>
-                <option value="'Heiti TC', 'Microsoft YaHei', sans-serif">字體：黑體 (簡約俐落)</option>
-                <option value="'cwTeXYen', 'Varela Round', 'Arial Rounded MT Bold', sans-serif">字體：圓體 (溫和親切)</option>
+            <!-- 雲端字體切換下拉選單 -->
+            <select id="fontSelect" class="mode-select" onchange="updateFont()" style="border-color: #aaa; color: #fff; font-family: inherit;">
+                <option value="'Noto Sans TC', sans-serif" style="font-family: 'Noto Sans TC';">字體：思源黑體 (現代標準)</option>
+                <option value="'Noto Serif TC', serif" style="font-family: 'Noto Serif TC';">字體：思源宋體 (復古老字號)</option>
+                <option value="'Klee One', cursive" style="font-family: 'Klee One';">字體：硬筆楷書 (文青手寫)</option>
+                <option value="'Zen Maru Gothic', sans-serif" style="font-family: 'Zen Maru Gothic';">字體：日系圓體 (溫和親切)</option>
             </select>
 
             <!-- 雙軌模式切換 -->
@@ -103,7 +102,6 @@
     </div>
 
     <script>
-        // 定義兩種模式的維度設定
         const modeData = {
             hainan: [
                 { id: 'h_skin', label: '外皮', default: 8 },
@@ -131,7 +129,6 @@
         const slidersContainer = document.getElementById('sliders');
         let radarChart;
 
-        // 1. 初始化圖表
         function initChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             Chart.defaults.backgroundColor = 'transparent';
@@ -190,7 +187,6 @@
             });
         }
 
-        // 2. 重新生成滑桿 HTML
         function renderSliders() {
             slidersContainer.innerHTML = '';
             currentDimensions.forEach(dim => {
@@ -206,23 +202,20 @@
             updateColors();
         }
 
-        // 3. 切換評分模式
         function switchMode() {
             const selectedMode = document.getElementById('modeSelect').value;
             currentDimensions = modeData[selectedMode];
-            
             renderSliders();
             radarChart.data.labels = currentDimensions.map(d => d.label);
             updateChart(); 
         }
 
-        // 4. 安全地動態更新字體 (解決 Crash 導致圖表消失的問題)
         function updateFont() {
             const selectedFont = document.getElementById('fontSelect').value;
             document.body.style.fontFamily = selectedFont;
+            document.getElementById('fontSelect').style.fontFamily = selectedFont;
             
             if (radarChart && radarChart.options) {
-                // 直接重新賦予整個 font 物件，避免深層屬性未定義報錯
                 radarChart.options.plugins.title.font = { size: 28, family: selectedFont, weight: 'bold' };
                 radarChart.options.plugins.subtitle.font = { size: 22, family: selectedFont, weight: 'bold' };
                 radarChart.options.scales.r.pointLabels.font = { size: 17, family: selectedFont, weight: 'bold' };
@@ -230,7 +223,6 @@
             }
         }
 
-        // 5. 安全地更新顏色
         function updateColors() {
             const rColor = document.getElementById('radarColor').value;
             const tColor = document.getElementById('textColor').value;
@@ -256,7 +248,6 @@
             });
         }
 
-        // 6. 計分與更新圖表數據
         function updateChart() {
             let sum = 0;
             const newData = currentDimensions.map(dim => {
@@ -279,12 +270,11 @@
             }
         }
 
-        // 7. 數據重置
         function resetData() {
             document.getElementById('restaurantName').value = "店名";
             document.getElementById('radarColor').value = "#FFD700";
             document.getElementById('textColor').value = "#ffffff";
-            document.getElementById('fontSelect').value = "'PingFang HK', 'Microsoft JhengHei', sans-serif";
+            document.getElementById('fontSelect').value = "'Noto Sans TC', sans-serif";
             
             renderSliders(); 
             updateColors();
@@ -292,7 +282,6 @@
             updateChart();
         }
 
-        // 8. 圖片下載
         function downloadChart() {
             if (!radarChart) return;
             const link = document.createElement('a');
@@ -301,12 +290,15 @@
             link.click();
         }
 
-        // 頁面載入時初始化
+        // 確保雲端字體載入後再繪製圖表，防止首次載入字體閃爍或錯位
         window.onload = () => {
             initChart();
             renderSliders();
             updateChart(); 
-            updateFont(); 
+            document.fonts.ready.then(() => {
+                updateFont(); 
+                radarChart.update();
+            });
         };
     </script>
 </body>
