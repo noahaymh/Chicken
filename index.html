@@ -62,8 +62,8 @@
         <div class="controls">
             <!-- 雙軌模式切換 -->
             <select id="modeSelect" class="mode-select" onchange="switchMode()">
-                <option value="hainan">海南雞專用</option>
-                <option value="general">百搭食雞</option>
+                <option value="hainan">【模式 A】海南雞專用</option>
+                <option value="general">【模式 B】百搭食雞 (炸雞/豉油雞/雞扒)</option>
             </select>
 
             <input type="text" id="restaurantName" value="店名：大埔XXXX" oninput="updateChart()">
@@ -92,7 +92,7 @@
     </div>
 
     <script>
-        // 定義兩種模式的維度設定
+        // 定義兩種模式的維度設定 (按照最新要求)
         const modeData = {
             hainan: [
                 { id: 'h_skin', label: '外皮', default: 8 },
@@ -120,7 +120,7 @@
         const slidersContainer = document.getElementById('sliders');
         let radarChart;
 
-        // 1. 初始化圖表
+        // 初始化圖表
         function initChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             Chart.defaults.backgroundColor = 'transparent';
@@ -132,8 +132,11 @@
                     datasets: [{
                         label: '雞棚指數',
                         data: currentDimensions.map(d => d.default),
+                        backgroundColor: '#FFD70073', 
+                        borderColor: '#FFD700',       
                         borderWidth: 3,                            
                         pointBackgroundColor: '#fff',
+                        pointBorderColor: '#FFD700',
                         pointRadius: 4,
                         pointHoverRadius: 6
                     }]
@@ -144,19 +147,29 @@
                     plugins: {
                         title: {
                             display: true,
+                            text: '店名：大埔XXXX',
                             font: { size: 28, family: 'Microsoft JhengHei', weight: 'bold' },
+                            color: '#ffffff',
                             padding: { top: 0, bottom: 5 } 
                         },
+                        // 新增 Subtitle 顯示 100分制總體評分
                         subtitle: {
                             display: true,
+                            text: '總體評分：0 / 100',
                             font: { size: 22, family: 'Microsoft JhengHei', weight: 'bold' },
+                            color: '#FFD700', 
                             padding: { bottom: 15 }
                         },
                         legend: { display: false }
                     },
                     scales: {
                         r: {
-                            pointLabels: { font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' } },
+                            angleLines: { color: '#ffffff40' }, 
+                            grid: { color: '#ffffff40' },       
+                            pointLabels: {
+                                font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' }, 
+                                color: '#ffffff' 
+                            },
                             suggestedMin: 0,
                             suggestedMax: 10,
                             ticks: { stepSize: 2, display: false } 
@@ -166,67 +179,99 @@
             });
         }
 
-        // 2. 重新生成滑桿 HTML
+        // 重新生成滑桿 HTML
         function renderSliders() {
-            slidersContainer.innerHTML = currentDimensions.map(dim => `
-                <div class="control-group">
+            slidersContainer.innerHTML = '';
+            currentDimensions.forEach(dim => {
+                const div = document.createElement('div');
+                div.className = 'control-group';
+                div.innerHTML = `
                     <label>${dim.label}</label>
                     <input type="range" id="${dim.id}" min="0" max="10" value="${dim.default}" oninput="updateChart()">
                     <span id="val-${dim.id}" class="val-display">${dim.default}</span>
-                </div>
-            `).join('');
+                `;
+                slidersContainer.appendChild(div);
+            });
+            updateColors();
         }
 
-        // 3. 處理顏色變更
-        function updateColors(isStandalone = true) {
+        // 切換模式觸發函數
+        function switchMode() {
+            const selectedMode = document.getElementById('modeSelect').value;
+            currentDimensions = modeData[selectedMode];
+            
+            renderSliders();
+            radarChart.data.labels = currentDimensions.map(d => d.label);
+            updateChart(); 
+        }
+
+        function updateColors() {
             const rColor = document.getElementById('radarColor').value;
             const tColor = document.getElementById('textColor').value;
-            const ds = radarChart.data.datasets[0];
-            const opts = radarChart.options;
 
-            ds.borderColor = rColor;
-            ds.backgroundColor = rColor + '73'; 
-            ds.pointBorderColor = rColor;
-            opts.plugins.title.color = tColor;
-            opts.plugins.subtitle.color = rColor; 
-            opts.scales.r.pointLabels.color = tColor;
-            opts.scales.r.angleLines.color = tColor + '40';
-            opts.scales.r.grid.color = tColor + '40';
+            radarChart.data.datasets[0].borderColor = rColor;
+            radarChart.data.datasets[0].backgroundColor = rColor + '73'; 
+            radarChart.data.datasets[0].pointBorderColor = rColor;
 
-            document.querySelectorAll('span.val-display').forEach(el => el.style.color = rColor);
-            document.querySelectorAll('.control-group input[type="range"]').forEach(el => el.style.accentColor = rColor);
+            radarChart.options.plugins.title.color = tColor;
+            radarChart.options.plugins.subtitle.color = rColor; // 總分跟隨主體顏色
+            radarChart.options.scales.r.pointLabels.color = tColor;
+            radarChart.options.scales.r.angleLines.color = tColor + '40';
+            radarChart.options.scales.r.grid.color = tColor + '40';
 
-            if (isStandalone) radarChart.update();
+            document.querySelectorAll('span.val-display').forEach(el => {
+                el.style.color = rColor;
+            });
+            document.querySelectorAll('.control-group input[type="range"]').forEach(el => {
+                el.style.accentColor = rColor;
+            });
+
+            radarChart.update();
         }
 
-        // 4. 計分與更新圖表數據
-        function updateChart(isStandalone = true) {
+        // 計分與更新圖表數據
+        function updateChart() {
             let sum = 0;
-            radarChart.data.datasets[0].data = currentDimensions.map(dim => {
+            const newData = currentDimensions.map(dim => {
                 const val = parseInt(document.getElementById(dim.id).value, 10);
                 document.getElementById(`val-${dim.id}`).innerText = val;
                 sum += val;
                 return val;
             });
 
-            // 動態計算滿分
-            const maxScore = currentDimensions.length * 10;
-            const totalScore = Math.round((sum / maxScore) * 100);
+            // 計算 100 分制總分 (四捨五入)
+            const totalScore = Math.round((sum / 80) * 100);
 
-            radarChart.options.plugins.title.text = document.getElementById('restaurantName').value;
-            radarChart.options.plugins.subtitle.text = `總分：${totalScore} / 100`;
-            
-            if (isStandalone) radarChart.update();
+            const name = document.getElementById('restaurantName').value;
+            radarChart.options.plugins.title.text = name;
+            radarChart.options.plugins.subtitle.text = `總體評分：${totalScore} / 100`;
+            radarChart.data.datasets[0].data = newData;
+            radarChart.update();
         }
 
-        // 5. 切換模式觸發函數
-        function switchMode() {
-            currentDimensions = modeData[document.getElementById('modeSelect').value];
-            radarChart.data.labels = currentDimensions.map(d => d.label);
+        function resetData() {
+            renderSliders(); 
+            document.getElementById('restaurantName').value = "店名：大埔XXXX";
             
+            document.getElementById('radarColor').value = "#FFD700";
+            document.getElementById('textColor').value = "#ffffff";
+            updateColors();
+            updateChart();
+        }
+
+        function downloadChart() {
+            const link = document.createElement('a');
+            link.download = '雞棚指數.png';
+            link.href = radarChart.canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+
+        // 頁面載入時初始化
+        window.onload = () => {
+            initChart();
             renderSliders();
-            updateColors(false); 
-            updateChart(true); 
-        }
-
-        // 6. 重置數據
+            updateChart(); // 確保首次載入即顯示正確總分
+        };
+    </script>
+</body>
+</html>
