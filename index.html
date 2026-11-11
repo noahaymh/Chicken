@@ -62,8 +62,8 @@
         <div class="controls">
             <!-- 雙軌模式切換 -->
             <select id="modeSelect" class="mode-select" onchange="switchMode()">
-                <option value="hainan">【模式 A】海南雞專用</option>
-                <option value="general">【模式 B】百搭食雞 (炸雞/豉油雞/雞扒)</option>
+                <option value="hainan">海南雞專用</option>
+                <option value="general">百搭食雞 </option>
             </select>
 
             <input type="text" id="restaurantName" value="店名：大埔XXXX" oninput="updateChart()">
@@ -155,7 +155,7 @@
                         // 新增 Subtitle 顯示 100分制總體評分
                         subtitle: {
                             display: true,
-                            text: '總體評分：0 / 100',
+                            text: '總分：0 / 100',
                             font: { size: 22, family: 'Microsoft JhengHei', weight: 'bold' },
                             color: '#FFD700', 
                             padding: { bottom: 15 }
