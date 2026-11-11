@@ -16,17 +16,23 @@
         label { display: inline-block; width: 100px; font-weight: bold; font-size: 15px; color: #ddd;}
         input[type=range] { width: 140px; cursor: pointer; accent-color: #FFD700; }
         span { display: inline-block; width: 35px; text-align: right; color: #FFD700; font-weight: bold; font-size: 16px;}
-        input[type=text] { padding: 10px; width: 100%; margin-bottom: 20px; font-size: 16px; text-align: center; border-radius: 6px; border: 1px solid #555; background: #111; color: #FFD700; font-weight: bold;}
+        input[type=text] { padding: 10px; width: 100%; margin-bottom: 15px; font-size: 16px; text-align: center; border-radius: 6px; border: 1px solid #555; background: #111; color: #fff; font-weight: bold;}
         
+        /* 調色盤區域 */
+        .color-picker-box { display: flex; justify-content: space-between; background: #1a1a1a; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #444; }
+        .color-item { display: flex; align-items: center; gap: 8px; }
+        .color-item label { width: auto; font-size: 14px; margin: 0; }
+        input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: transparent; padding: 0; }
+
         /* 按鈕設計 */
         .btn { margin-top: 10px; padding: 12px 20px; color: #000; border: none; cursor: pointer; font-weight: bold; font-size: 16px; border-radius: 6px; width: 100%; transition: 0.3s; }
         .btn-reset { background: #ccc; }
         .btn-reset:hover { background: #aaa; }
-        .btn-download { background: #00E676; margin-top: 20px; font-size: 18px; box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);}
+        .btn-download { background: #00E676; margin-top: 10px; font-size: 18px; box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);}
         .btn-download:hover { background: #00C853; }
         .note { font-size: 12px; color: #888; margin-top: 15px; text-align: center; }
 
-        /* 圖表顯示區 - 模擬深色背景以便預覽白色字體 */
+        /* 圖表顯示區 */
         .chart-box { 
             background: #1a1a1a; 
             background-image: radial-gradient(circle, #333 1px, transparent 1px);
@@ -46,37 +52,45 @@
     <h2>🐔 雞棚指數 雷達圖生成器</h2>
     <div class="container">
         <div class="controls">
-            <div class="control-group">
-                <input type="text" id="restaurantName" value="店名：大埔XXXX" oninput="updateChart()">
+            <input type="text" id="restaurantName" value="店名：大埔XXXX" oninput="updateChart()">
+            
+            <!-- 新增：調色盤區域 -->
+            <div class="color-picker-box">
+                <div class="color-item">
+                    <label>主體顏色</label>
+                    <input type="color" id="radarColor" value="#FFD700" oninput="updateColors()">
+                </div>
+                <div class="color-item">
+                    <label>文字顏色</label>
+                    <input type="color" id="textColor" value="#ffffff" oninput="updateColors()">
+                </div>
             </div>
             
             <div id="sliders"></div>
 
-            <button class="btn btn-download" onclick="downloadChart()">Download</button>
+            <button class="btn btn-download" onclick="downloadChart()">⬇️ 下載透明底雷達圖</button>
             <button class="btn btn-reset" onclick="resetData()">重置數據</button>
             <p class="note">下載後的圖片為 PNG 透明背景，方便貼在 IG 相片上</p>
         </div>
 
         <div class="chart-box">
-            <!-- Canvas 本身係透明，CSS 背景只係用作預覽 -->
             <canvas id="radarChart"></canvas>
         </div>
     </div>
 
     <script>
-        // 設定 8 個海南雞評測維度
+        // 更新：8 個海南雞評測維度
         const dimensions = [
             { id: 'skin', label: '雞皮', default: 8 },
             { id: 'meat', label: '肉質', default: 8 },
             { id: 'fat', label: '脂肪', default: 6 },
-            { id: 'flavor', label: '雞味', default: 7 },
+            { id: 'flavor', label: '食味', default: 7 },
             { id: 'rice', label: '油飯', default: 9 },
             { id: 'soy', label: '醬油', default: 7 },
             { id: 'ginger', label: '薑蓉', default: 8 },
             { id: 'chili', label: '辣醬', default: 7 }
         ];
 
-        // 動態生成滑桿
         const slidersContainer = document.getElementById('sliders');
         dimensions.forEach(dim => {
             const div = document.createElement('div');
@@ -89,10 +103,7 @@
             slidersContainer.appendChild(div);
         });
 
-        // 初始化圖表
         const ctx = document.getElementById('radarChart').getContext('2d');
-        
-        // 確保 Chart 背景全透明
         Chart.defaults.backgroundColor = 'transparent';
 
         let radarChart = new Chart(ctx, {
@@ -102,9 +113,9 @@
                 datasets: [{
                     label: '雞棚指數',
                     data: dimensions.map(d => d.default),
-                    backgroundColor: 'rgba(255, 215, 0, 0.45)', // 亮金黃色填充
-                    borderColor: 'rgba(255, 215, 0, 1)',       // 亮金黃色實線邊框
-                    borderWidth: 3,                            // 加粗邊框
+                    backgroundColor: '#FFD70073', // 尾數 73 代表約 45% 透明度
+                    borderColor: '#FFD700',       
+                    borderWidth: 3,                            
                     pointBackgroundColor: '#fff',
                     pointBorderColor: '#FFD700',
                     pointRadius: 4,
@@ -119,18 +130,18 @@
                         display: true,
                         text: '店名：大埔XXXX',
                         font: { size: 28, family: 'Microsoft JhengHei', weight: 'bold' },
-                        color: '#ffffff', // 標題轉白色
-                        padding: { bottom: 20 }
+                        color: '#ffffff',
+                        padding: { top: 0, bottom: 5 } // 縮減間距
                     },
                     legend: { display: false }
                 },
                 scales: {
                     r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.25)' }, // 雷達放射線（半透明白）
-                        grid: { color: 'rgba(255, 255, 255, 0.25)' },       // 雷達網格線（半透明白）
+                        angleLines: { color: '#ffffff40' }, // 尾數 40 代表約 25% 透明度
+                        grid: { color: '#ffffff40' },       
                         pointLabels: {
-                            font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' }, // 放大字體方便手機睇
-                            color: '#ffffff' // 維度文字全部轉純白色
+                            font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' }, 
+                            color: '#ffffff' 
                         },
                         suggestedMin: 0,
                         suggestedMax: 10,
@@ -140,7 +151,34 @@
             }
         });
 
-        // 更新圖表函數
+        // 新增：動態更新圖表顏色函數
+        function updateColors() {
+            const rColor = document.getElementById('radarColor').value;
+            const tColor = document.getElementById('textColor').value;
+
+            // 更改雷達圖顏色 (加上十六進制透明度 73)
+            radarChart.data.datasets[0].borderColor = rColor;
+            radarChart.data.datasets[0].backgroundColor = rColor + '73'; 
+            radarChart.data.datasets[0].pointBorderColor = rColor;
+
+            // 更改文字及網格線顏色 (加上十六進制透明度 40)
+            radarChart.options.plugins.title.color = tColor;
+            radarChart.options.scales.r.pointLabels.color = tColor;
+            radarChart.options.scales.r.angleLines.color = tColor + '40';
+            radarChart.options.scales.r.grid.color = tColor + '40';
+
+            // 同步更新拉桿旁邊的數值顏色
+            document.querySelectorAll('.control-group span').forEach(el => {
+                el.style.color = rColor;
+            });
+            document.querySelectorAll('.control-group input[type="range"]').forEach(el => {
+                el.style.accentColor = rColor;
+            });
+
+            radarChart.update();
+        }
+
+        // 更新數據函數
         function updateChart() {
             const newData = dimensions.map(dim => {
                 const val = document.getElementById(dim.id).value;
@@ -153,17 +191,22 @@
             radarChart.update();
         }
 
-        // 重置函數
+        // 重置數據函數
         function resetData() {
             dimensions.forEach(dim => {
                 document.getElementById(dim.id).value = 5;
                 document.getElementById(`val-${dim.id}`).innerText = 5;
             });
             document.getElementById('restaurantName').value = "店名：大埔XXXX";
+            
+            // 重置顏色
+            document.getElementById('radarColor').value = "#FFD700";
+            document.getElementById('textColor').value = "#ffffff";
+            updateColors();
             updateChart();
         }
 
-        // 圖片下載函數 (匯出透明 PNG)
+        // 下載圖片函數
         function downloadChart() {
             const link = document.createElement('a');
             link.download = '雞棚指數.png';
