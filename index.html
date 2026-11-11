@@ -6,37 +6,59 @@
     <title>雞棚指數 - 海南雞評分</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        h2 { color: #ff5722; text-shadow: 0 0 8px rgba(255, 87, 34, 0.5); } /* 霓虹橙紅 */
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h2 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); } 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; width: 100%; max-width: 1000px; }
-        .controls { background: #333; padding: 20px; border-radius: 10px; min-width: 300px; }
-        .chart-box { background: #fff; padding: 10px; border-radius: 10px; width: 500px; height: 500px; display: flex; justify-content: center; align-items: center; }
+        
+        /* 控制面板設計 */
+        .controls { background: #2a2a2a; padding: 25px; border-radius: 12px; min-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .control-group { margin-bottom: 15px; }
-        label { display: inline-block; width: 120px; font-weight: bold; }
-        input[type=range] { width: 150px; cursor: pointer; accent-color: #ff5722; }
-        span { display: inline-block; width: 30px; text-align: right; color: #ff5722; }
-        input[type=text] { padding: 5px; width: 100%; margin-bottom: 20px; font-size: 16px; text-align: center; }
-        .btn { margin-top: 10px; padding: 10px 20px; background: #ff5722; color: #fff; border: none; cursor: pointer; font-weight: bold; font-size: 16px; border-radius: 5px; width: 100%; }
-        .btn:hover { background: #e64a19; }
-        .note { font-size: 12px; color: #aaa; margin-top: 10px; text-align: center; }
+        label { display: inline-block; width: 100px; font-weight: bold; font-size: 15px; color: #ddd;}
+        input[type=range] { width: 140px; cursor: pointer; accent-color: #FFD700; }
+        span { display: inline-block; width: 35px; text-align: right; color: #FFD700; font-weight: bold; font-size: 16px;}
+        input[type=text] { padding: 10px; width: 100%; margin-bottom: 20px; font-size: 16px; text-align: center; border-radius: 6px; border: 1px solid #555; background: #111; color: #FFD700; font-weight: bold;}
+        
+        /* 按鈕設計 */
+        .btn { margin-top: 10px; padding: 12px 20px; color: #000; border: none; cursor: pointer; font-weight: bold; font-size: 16px; border-radius: 6px; width: 100%; transition: 0.3s; }
+        .btn-reset { background: #ccc; }
+        .btn-reset:hover { background: #aaa; }
+        .btn-download { background: #00E676; margin-top: 20px; font-size: 18px; box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);}
+        .btn-download:hover { background: #00C853; }
+        .note { font-size: 12px; color: #888; margin-top: 15px; text-align: center; }
+
+        /* 圖表顯示區 - 模擬深色背景以便預覽白色字體 */
+        .chart-box { 
+            background: #1a1a1a; 
+            background-image: radial-gradient(circle, #333 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 20px; 
+            border-radius: 12px; 
+            width: 500px; 
+            height: 500px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            border: 2px dashed #444;
+        }
     </style>
 </head>
 <body>
-    <h2>🐔 雞棚指數 - 海南雞評測</h2>
+    <h2>🐔 雞棚指數 雷達圖生成器</h2>
     <div class="container">
         <div class="controls">
             <div class="control-group">
-                <label>餐廳名稱：</label>
-                <input type="text" id="restaurantName" value="輸入餐廳名稱" oninput="updateChart()">
+                <input type="text" id="restaurantName" value="店名：大埔XXXX" oninput="updateChart()">
             </div>
             
             <div id="sliders"></div>
 
-            <button class="btn" onclick="resetData()">重置數據</button>
-            <p class="note">調整滑桿後，右鍵點擊圖表即可儲存圖片</p>
+            <button class="btn btn-download" onclick="downloadChart()">⬇️ 下載透明底雷達圖</button>
+            <button class="btn btn-reset" onclick="resetData()">重置數據</button>
+            <p class="note">下載後的圖片為 PNG 透明背景，方便貼在 IG 相片上</p>
         </div>
 
         <div class="chart-box">
+            <!-- Canvas 本身係透明，CSS 背景只係用作預覽 -->
             <canvas id="radarChart"></canvas>
         </div>
     </div>
@@ -69,6 +91,10 @@
 
         // 初始化圖表
         const ctx = document.getElementById('radarChart').getContext('2d');
+        
+        // 確保 Chart 背景全透明
+        Chart.defaults.backgroundColor = 'transparent';
+
         let radarChart = new Chart(ctx, {
             type: 'radar',
             data: {
@@ -76,32 +102,35 @@
                 datasets: [{
                     label: '雞棚指數',
                     data: dimensions.map(d => d.default),
-                    backgroundColor: 'rgba(255, 87, 34, 0.4)', // 橙紅色填充
-                    borderColor: 'rgba(255, 87, 34, 1)',       // 橙紅色邊框
-                    borderWidth: 2,
+                    backgroundColor: 'rgba(255, 215, 0, 0.45)', // 亮金黃色填充
+                    borderColor: 'rgba(255, 215, 0, 1)',       // 亮金黃色實線邊框
+                    borderWidth: 3,                            // 加粗邊框
                     pointBackgroundColor: '#fff',
-                    pointBorderColor: '#ff5722'
+                    pointBorderColor: '#FFD700',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     title: {
                         display: true,
-                        text: '輸入餐廳名稱',
-                        font: { size: 24, family: 'Microsoft JhengHei' },
-                        color: '#333',
+                        text: '店名：大埔XXXX',
+                        font: { size: 28, family: 'Microsoft JhengHei', weight: 'bold' },
+                        color: '#ffffff', // 標題轉白色
                         padding: { bottom: 20 }
                     },
                     legend: { display: false }
                 },
                 scales: {
                     r: {
-                        angleLines: { color: '#ccc' },
-                        grid: { color: '#ddd' },
+                        angleLines: { color: 'rgba(255, 255, 255, 0.25)' }, // 雷達放射線（半透明白）
+                        grid: { color: 'rgba(255, 255, 255, 0.25)' },       // 雷達網格線（半透明白）
                         pointLabels: {
-                            font: { size: 14, weight: 'bold', family: 'Microsoft JhengHei' },
-                            color: '#333' 
+                            font: { size: 17, weight: 'bold', family: 'Microsoft JhengHei' }, // 放大字體方便手機睇
+                            color: '#ffffff' // 維度文字全部轉純白色
                         },
                         suggestedMin: 0,
                         suggestedMax: 10,
@@ -113,18 +142,13 @@
 
         // 更新圖表函數
         function updateChart() {
-            // 更新數值顯示
             const newData = dimensions.map(dim => {
                 const val = document.getElementById(dim.id).value;
                 document.getElementById(`val-${dim.id}`).innerText = val;
                 return val;
             });
-
-            // 更新標題
             const name = document.getElementById('restaurantName').value;
             radarChart.options.plugins.title.text = name;
-
-            // 更新數據
             radarChart.data.datasets[0].data = newData;
             radarChart.update();
         }
@@ -135,8 +159,16 @@
                 document.getElementById(dim.id).value = 5;
                 document.getElementById(`val-${dim.id}`).innerText = 5;
             });
-            document.getElementById('restaurantName').value = "我的海南雞食評";
+            document.getElementById('restaurantName').value = "店名：大埔XXXX";
             updateChart();
+        }
+
+        // 圖片下載函數 (匯出透明 PNG)
+        function downloadChart() {
+            const link = document.createElement('a');
+            link.download = '雞棚指數.png';
+            link.href = radarChart.canvas.toDataURL('image/png', 1.0);
+            link.click();
         }
     </script>
 </body>
